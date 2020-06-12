@@ -20,22 +20,21 @@ router.get('/users', function (req, rsp) {
 router.get('/items', function (req, rsp) {
 	req.db.all('select * from items', (err, items) => {
 		if (items) rsp.status(200).json(items);
-		else console.log("noo"); //rsp.status(404).json({ error: "User not found" });
+		else return rsp.status(404).json({ error: "User not found" });
 	})
 	
 })
 
 router.post('/users', function (req, rsp) {
-	req.db.all('insert into users values ($user_name, $password, $score)',
+	req.db.all('insert into users values ($user_name, $password)',
 	{
 		$user_name: req.body.user_name,
 		$password: req.body.password,
-		$score: req.body.score
 	}, function (err) {
 		if (!err) {
 		rsp.status(200).json("User added");
 		}
-		else rsp.status(404).json("Fail adding user")
+		else return rsp.status(404).json("Fail adding user")
 	})
 })
 
@@ -49,7 +48,6 @@ router.post('/items', function (req, rsp) {
 		rsp.status(200).json("Item added");
 		}
 		else rsp.status(404).json("Failed adding item");
-		//else return console.error(err.message);
 	})
 })
 

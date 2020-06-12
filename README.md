@@ -1,4 +1,3 @@
-This is an application where you can register and log in and then click a button to increase your score. All user scores can be seen.
 
 
 ## Before running

@@ -1,23 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './style.scss';
-import Ripples from 'react-ripples';
 
 
 
 let xhr = new XMLHttpRequest();
 let currentUser;
-
-  
-
-// xhr.open('POST', '/api/users/');
-// xhr.setRequestHeader("Content-Type", "application/json");
-// xhr.send(JSON.stringify({user_name: "user3", password: "password3", score: 0}));
-
-// xhr.open("PUT", '/api/user1')
-// xhr.setRequestHeader("Content-Type", "application/json");
-// xhr.send(JSON.stringify({score: 0}));
-
 
 
 class App extends React.Component {
@@ -59,9 +47,6 @@ class App extends React.Component {
           <div name = "registerTab" className = {"controller " + (this.state.RegistrationOpen ? "selected-controller": "")} onClick={this.showRegistrationBox.bind(this)}>
           Register
           </div>
-          {/* <div className = {"controller " + (this.state.MainPageOpen ? "selected-controller": "")} onClick={this.showMainPage.bind(this)}>
-         Main Page
-          </div> */}
         </div>
 
         <div className="box-container">
@@ -191,7 +176,7 @@ class RegistrationBox extends React.Component {
 
         xhr2.open('POST', '/api/users/');
         xhr2.setRequestHeader("Content-Type", "application/json");
-        xhr2.send(JSON.stringify({user_name: username, password: password, score: 0}))
+        xhr2.send(JSON.stringify({user_name: username, password: password}))
       }
 
     }
@@ -232,24 +217,13 @@ class RegistrationBox extends React.Component {
 
   constructor(props){
     super(props);
-    // this.state={list: [], score: currentUser.score};
 
     let items;
     let set = this;
 
-    // xhr.open('GET', '/api/items/', true);
-    // xhr.responseType = 'json';
-
-    // xhr.onload = function () {
-    //   users = xhr.response;
-      
-    //   set.setState({list: users});
-    // }
-    // xhr.send(null);
-
     this.toggleTagWindow = this.toggleTagWindow.bind(this);
 
-    this.state={list: [], score: 0, toggledTagWindow: false, toggledEditWindow: false, filter: ""};
+    this.state={list: [], score: 0, toggledTagWindow: false, toggledEditWindow: false, filter: "", itemExists: false};
 
      
     let currentItem;
@@ -274,23 +248,41 @@ class RegistrationBox extends React.Component {
     let name = document.getElementsByName("item")[0].value;
     let user = currentUser.user_name;
 
-    xhr2.open('POST', '/api/items/');
-    xhr2.setRequestHeader("Content-Type", "application/json");
-    
-    xhr2.send(JSON.stringify({name: name, user_name: user}));
-
-    let items = this.users; 
+    let items = this.items; 
     let set = this;
+    let bool;
+    
 
-    xhr.open('GET', '/api/items/', true);
-    xhr.responseType = 'json';
+    for(let x of items) {
+      if (x.name == name.trim()) {
+        bool = true;
+      }
+    }
 
-    xhr.onload = function () {
+    if(bool) {
+
+      set.setState({itemExists: true})
+       setTimeout(function() {
+         set.setState({itemExists: false})
+       }, 1000);
+      } else {
+    
+
+      xhr2.open('POST', '/api/items/');
+      xhr2.setRequestHeader("Content-Type", "application/json");
+    
+      xhr2.send(JSON.stringify({name: name, user_name: user}));
+
+      xhr.open('GET', '/api/items/', true);
+      xhr.responseType = 'json';
+
+      xhr.onload = function () {
       items = xhr.response;
       
       set.setState({list: items});
-    }
+      }
     xhr.send(null);
+  }
   }
 
   toggleTagWindow(toggle, name) {
@@ -304,35 +296,38 @@ class RegistrationBox extends React.Component {
   }
 
   addTag() {
-    let tag = document.getElementsByName("tag")[0].value;
-    let set = this;
+      let tag = document.getElementsByName("tag")[0].value;
+      let set = this;
 
-    let xhr55 = new XMLHttpRequest;
-    xhr55.open("PUT", '/api/' + this.currentItem + '/')
-    xhr55.setRequestHeader("Content-Type", "application/json");
-    xhr55.send(JSON.stringify({tag: tag}));
+      if(tag.trim() != "") {
 
-    xhr.open('GET', '/api/items/', true);
-    xhr.responseType = 'json';
+      let xhrTag = new XMLHttpRequest;
+      xhrTag.open("PUT", '/api/' + this.currentItem + '/')
+      xhrTag.setRequestHeader("Content-Type", "application/json");
+      xhrTag.send(JSON.stringify({tag: tag}));
 
-    xhr.onload = function () {
-      let items = xhr.response;
+      xhr.open('GET', '/api/items/', true);
+      xhr.responseType = 'json';
+
+      xhr.onload = function () {
+        let items = xhr.response;
       
-      set.setState({list: items});
+        set.setState({list: items});
+      }
+      xhr.send(null);
+      this.setState({toggledTagWindow: false});
     }
-    xhr.send(null);
-    this.setState({toggledTagWindow: false});
   }
 
   editName() {
     let new_name = document.getElementsByName("new_name")[0].value;
     let set = this;
 
-    let xhr55 = new XMLHttpRequest;
+    let xhrName = new XMLHttpRequest;
 
-    xhr55.open("PUT", '/api/name/' + this.currentItem + '/')
-    xhr55.setRequestHeader("Content-Type", "application/json");
-    xhr55.send(JSON.stringify({new_name: new_name}));
+    xhrName.open("PUT", '/api/name/' + this.currentItem + '/')
+    xhrName.setRequestHeader("Content-Type", "application/json");
+    xhrName.send(JSON.stringify({new_name: new_name}));
 
     xhr.open('GET', '/api/items/', true);
     xhr.responseType = 'json';
@@ -358,45 +353,56 @@ class RegistrationBox extends React.Component {
     
     return(
   <div> 
-  <div className="root-container">
+  <div className="container">
       <div className="box-item">
-      <input type="text" name="filter" placeholder="search a tag"></input>
-      <button onClick={() => this.filter()}> search </button>
+      <input className = "todo_input" type="text" name="filter" placeholder="search a tag"></input>
+      <button onClick={() => this.filter()} style = {{marginBottom: "10px"}}> search </button>
       <div>
       {this.state.list.map(function(element, idx){
         if(set.state.filter != "") {
           if(element.user_name === currentUser.user_name && element.tag === set.state.filter) {
-            return (<li key={idx}>{element.name} <button onClick={() => set.toggleTagWindow(true, element.name)}>tag item</button>
-            <button onClick={() => set.toggleEditWindow(true, element.name)}>edit</button>
-            </li>)
+            return (
+              <ul>
+              <li class="item" key={idx}>{element.name} <button className = "item_button" onClick={() => set.toggleTagWindow(true, element.name)}>tag item</button>
+            <button className = "item_button" onClick={() => set.toggleEditWindow(true, element.name)}>edit</button>
+            </li>
+            </ul>)
           }
         } else {
           if(element.user_name === currentUser.user_name) {
-            return (<li key={idx}>{element.name} <button onClick={() => set.toggleTagWindow(true, element.name)}>tag item</button>
-            <button onClick={() => set.toggleEditWindow(true, element.name)}>edit</button>
-            </li>)
+            return (
+              <ul>
+              <li class = "item" key={idx}>{element.name} <button className = "item_button" onClick={() => set.toggleTagWindow(true, element.name)}>tag item</button>
+            <button className = "item_button" onClick={() => set.toggleEditWindow(true, element.name)}>edit</button>
+            </li>
+            </ul>)
           }
         }
         })}
        </div>
        {this.state.toggledTagWindow && <div className = "popup">
        <div className = "inner_popup">
+       <div className = "container">
        <input type="text" name="tag" placeholder="tag"></input>
-       <button onClick={this.addTag.bind(this)}> add tag </button>
-       <button onClick={() => this.toggleTagWindow(false)}> cancel </button>
+       <button className = "item_button" onClick={this.addTag.bind(this)}> save </button>
+       <button className = "item_button" onClick={() => this.toggleTagWindow(false)}> cancel </button>
+       </div>
        </div>
        </div>}
        {this.state.toggledEditWindow && <div className = "popup">
        <div className = "inner_popup">
+       <div className = "container">
        <input type="text" name="new_name" placeholder="new name"></input>
-       <button onClick={this.editName.bind(this)}> add tag </button>
-       <button onClick={() => this.toggleEditWindow(false)}> cancel </button>
+       <button className = "item_button" onClick={this.editName.bind(this)}> save </button>
+       <button className = "item_button" onClick={() => this.toggleEditWindow(false)}> cancel </button>
+       </div>
        </div>
        </div>}
        <input type="text" name="item" placeholder="item name"></input>
        <button onClick={() => this.addItem()}> create </button>
+       {this.state.itemExists && <div style={{color:'rgb(255, 17, 0)'}}>Item already exists</div>}
        </div>
-       <div><button type="button" name="logout" style={{color:'rgb(255, 8, 127)', background:'rgb(65, 75, 85)', height:50, width:100, fontSize:20}} className="btn btn-primary" onClick={this.logOut.bind(this)}>
+       <div><button type="button" name="logout" className="logout_button" onClick={this.logOut.bind(this)}>
          Log out
          </button>
        </div>
