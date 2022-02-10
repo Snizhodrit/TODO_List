@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "cypress": "^3.6.0",
-    "node-sass": "^4.13.0",
+    "node-sass": "^7.0.0",
     "react": "^16.11.0",
     "react-bootstrap-validation": "^0.1.11",
     "react-dom": "^16.11.0",
